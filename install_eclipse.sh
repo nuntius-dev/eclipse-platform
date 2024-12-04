@@ -1,19 +1,24 @@
 #!/bin/bash
 
-ECLIPSE_VER_DATE="2024-12"
-ECLIPSE_URL="https://mirrors.xmission.com/eclipse/technology/epp/downloads/release/${ECLIPSE_VER_DATE}/R/eclipse-java-${ECLIPSE_VER_DATE}-R-linux-gtk-$(arch).tar.gz"
-ECLIPSE_DIR="/opt/eclipse"
-ECLIPSE_ICON_DIR="/opt/eclipse/plugins/$(ls /opt/eclipse/plugins/ | grep -m 1 org.eclipse.platform_)/eclipse128.png"
-DESKTOP_FILE="$INST_SCRIPTS/eclipse/eclipse.desktop"
+ECLIPSE_VER_DATE="2024-09"
+ARCH=$(uname -m | sed 's/x86_64/x86_64/' | sed 's/aarch64/aarch64/')
+OS="linux-gtk"
 
-# Descargar y extraer Eclipse
 cd /tmp
-wget -q -O eclipse.tar.gz "$ECLIPSE_URL"
-tar -xzf eclipse.tar.gz -C /opt
+wget -q -O eclipse.tar.gz "https://mirrors.xmission.com/eclipse/technology/epp/downloads/release/${ECLIPSE_VER_DATE}/R/eclipse-java-${ECLIPSE_VER_DATE}-R-${OS}-${ARCH}.tar.gz"
 
-# Actualizar el icono en el archivo .desktop
-sed -i "s#eclipse128.png#${ECLIPSE_ICON_DIR}#" "$DESKTOP_FILE"
-
-# Copiar el archivo .desktop a las ubicaciones correspondientes
-cp "$DESKTOP_FILE" $HOME/Desktop/
-cp "$DESKTOP_FILE" /usr/share/applications/
+if [ $? -eq 0 ]; then
+  tar -xzf eclipse.tar.gz -C /opt
+  ECLIPSE_ICON="/opt/eclipse/plugins/$(ls /opt/eclipse/plugins/ | grep -m 1 org.eclipse.platform_)/eclipse128.png"
+  cat <<EOF > /usr/share/applications/eclipse.desktop
+[Desktop Entry]
+Name=Eclipse IDE
+Type=Application
+Exec=/opt/eclipse/eclipse
+Icon=${ECLIPSE_ICON}
+Categories=Development;IDE;
+EOF
+  chmod +x /usr/share/applications/eclipse.desktop
+else
+  echo "Error descargando Eclipse. Verifica la URL o versión."
+fi
